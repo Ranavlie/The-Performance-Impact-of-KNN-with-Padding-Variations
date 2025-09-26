@@ -15,71 +15,84 @@ Use [npz_to_parquet.py](npz_to_parquet.py) to convert .npz embedding files into 
 ##  Scripts Overview
 
 ### 1. crop.py
-Purpose: Crop objects from images using JSON annotations.\
+Purpose: Crop objects from images using JSON annotations.
 #### Features:
 Supports padding in pixels or as a percentage of object size.\
 Resizes crops using resize or resize_with_padding.\
 Validates annotations and skips invalid or missing data.\
-Organizes crops by split (train, val, test) and object ID.\
+Organizes crops by split (train, val, test) and object ID.
 #### Inputs:
 --json_path: Path to JSON annotations.\
 --image_folder: Folder containing original images.\
 --output_root: Folder to save cropped images.
   
-Outputs: Cropped images organized by split and object ID.
+#### Outputs: 
+Cropped images organized by split and object ID.
 
 ### 2. extract_embeddings.py
-Purpose: Extract embeddings from cropped images using a model.\
+Purpose: Extract embeddings from cropped images using a model.
 #### Features:
 Supports any PyTorch-based feature extraction model.\
 Maintains metadata like sample_id, crop_id, class labels, and dataset name.\
-Handles multiple splits (train, val, test).\
+Handles multiple splits (train, val, test).
 #### Inputs:
 --data_root: Root folder containing cropped images.\
 --folders: Subfolders corresponding to classes/categories.\
 Optional: --company_name or dataset identifier.
   
-Outputs: .npz files containing embeddings and metadata.
+#### Outputs: 
+.npz files containing embeddings and metadata.
 
 ### 3. evaluate_combo.py
-Purpose: Evaluate embeddings by computing metrics such as k-NN accuracy.\
+Evaluate embeddings by computing metrics (like k-NN accuracy) and optionally visualize embedding distributions for deeper insight. This script allows you to compare reference and query embeddings to assess their quality and separability.
 #### Features:
-Loads embeddings from .npz files.\
-Combines multiple files for reference and query sets.\
-Maps class labels automatically.\
-Optional cosine similarity and visualization.\
+Loads embeddings from .npz files and merges them by user-specified IDs.\
+Performs k-NN evaluation (cosine similarity) to compute simple accuracy for reference-query combinations.\
+Computes cosine similarity matrices among embeddings to measure intra-class and inter-class similarity.\
+Supports 2D visualization using PCA, t-SNE, or UMAP. Only the top-N most frequent labels are visualized; all others are grouped as "OTHER".\
+Interactive selection: users can incrementally add reference IDs and evaluate queries against the merged references.
 #### Inputs:
 --train_npz: Reference embedding files.\
 --test_npz: Query embedding files.\
---company_name: Dataset identifier.
+--key: Key inside the .npz files where embeddings are stored (e.g., 'train', 'test').
   
-Outputs: Metrics printed and optionally saved to a log file.
+#### Outputs: 
+Accuracy scores printed for each reference-query pair.
+ 
+Optional visualization of embeddings in 2D using PCA, t-SNE, or UMAP.
+  <img width="591" height="450" alt="Screenshot (73)" src="https://github.com/user-attachments/assets/74ef6a5e-5333-4f86-a3eb-fc5af80adb29" />
+<img width="606" height="445" alt="Screenshot (72)" src="https://github.com/user-attachments/assets/cc6762ab-f3f8-4864-9aa2-128f21ed3dc2" />
+<img width="587" height="464" alt="Screenshot (74)" src="https://github.com/user-attachments/assets/4cabb6c5-92a9-4301-aba4-991119ec93df" />
 
+Cosine similarity metrics (optional) for analyzing embedding relationships.
+  
 ### 4. greedy_combo_eval.py
-Purpose: Perform greedy search over embedding combinations to find the best-performing reference/query sets.\
+Purpose: Perform greedy search over embedding combinations to find the best-performing reference/query sets.
 #### Features:
 Supports all pairwise or n-wise combinations.\
 Computes k-NN metrics for each combination.\
 Saves results to results.txt.\
-Dataset-agnostic.\
+Dataset-agnostic.
 #### Inputs:
 --train_npz / --test_npz: Lists of .npz embeddings.\
 --combination_size: Number of embeddings per combination.\
 --company_name: Generic dataset name.
   
-Outputs: Evaluation metrics for each combination saved to a file.
+#### Outputs: 
+Evaluation metrics for each combination saved to a file.
 
 ### 5. npz_to_parquet.py
-Purpose: Convert .npz embedding files into a single Parquet file for visualization.\
+Purpose: Convert .npz embedding files into a single Parquet file for visualization.
 #### Features:
 Expands multi-label fields into separate columns (class_0, class_1, etc.).\
 Captures dataset name, sample IDs, and source file name.\
-Output is ready for visualization in platforms like Apple/Atlas.\
+Output is ready for visualization in platforms like Apple/Atlas.
 #### Inputs:
 --root: Folder containing .npz files.\
 --out: Output Parquet file.
   
-Outputs: Single Parquet file with embeddings and metadata.
+#### Outputs: 
+Single Parquet file with embeddings and metadata.
 
 ## Results and Observations
 Different combinations of references and queries with varying padding percentages improved product classification accuracy for certain setups.
